@@ -22,13 +22,13 @@ jobs:
         mkdir -p ~/.ssh
         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H 34.41.206.205 >> ~/.ssh/known_hosts
+        ssh-keyscan -H 34.63.130.176 >> ~/.ssh/known_hosts
 
     - name: Create Ansible inventory
       run: |
         cd ansible
         echo "[n8n_server]" > inventory.ini
-        echo "34.41.206.205 ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+        echo "34.63.130.176 ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
 
     - name: Run Ansible playbook
       run: |
