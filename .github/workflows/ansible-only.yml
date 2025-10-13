@@ -1,0 +1,46 @@
+name: Run Ansible Only
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ansible-configure:
+    name: Configure Server with Ansible
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Ansible
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible
+
+    - name: Create SSH key file
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 34.41.206.205 >> ~/.ssh/known_hosts
+
+    - name: Create Ansible inventory
+      run: |
+        cd ansible
+        echo "[n8n_server]" > inventory.ini
+        echo "34.41.206.205 ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+
+    - name: Run Ansible playbook
+      run: |
+        cd ansible
+        ansible-playbook -i inventory.ini playbook.yml -e "DOMAIN_NAME=${{ secrets.DOMAIN_NAME }}"
+
+    - name: Cleanup
+      run: |
+        rm -f ~/.ssh/id_rsa
+        rm -f ansible/inventory.ini
+
+    - name: Deployment Status
+      run: |
+        echo "✅ Ansible deployment completed successfully!"
+        echo "🌐 Your n8n instance should be available at: https://${{ secrets.DOMAIN_NAME }}"
