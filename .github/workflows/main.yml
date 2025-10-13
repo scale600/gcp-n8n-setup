@@ -66,7 +66,7 @@ jobs:
           echo "${{ steps.get_ip.outputs.IP }} ansible_user=admin" >> inventory
 
       - name: Upload Inventory as Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: inventory
           path: inventory
@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Download Inventory Artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: inventory
           path: ./ansible
