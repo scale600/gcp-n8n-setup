@@ -37,10 +37,19 @@ jobs:
           cd terraform
           terraform plan -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
 
-      - name: Terraform Apply
-        run: |
-          cd terraform
-          terraform apply -auto-approve -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
+    - name: Cleanup existing resources
+      run: |
+        # Delete existing resources to avoid conflicts
+        gcloud compute instances delete n8n-server --zone=us-central1-a --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+        gcloud compute addresses delete n8n-static-ip --region=us-central1 --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+        gcloud compute firewall-rules delete allow-http --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+        gcloud compute firewall-rules delete allow-https --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+        gcloud compute firewall-rules delete allow-ssh --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+
+    - name: Terraform Apply
+      run: |
+        cd terraform
+        terraform apply -auto-approve -var="gcp_project_id=${{ secrets.GCP_PROJECT_ID }}" -var="ssh_public_key=${{ secrets.SSH_PUBLIC_KEY }}"
 
     - name: Get Instance IP
       id: get-ip
