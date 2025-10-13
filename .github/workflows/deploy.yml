@@ -2,7 +2,7 @@ name: Deploy n8n to GCP
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, feat/n8n-cicd-pipeline]
   workflow_dispatch:
 
 jobs:
