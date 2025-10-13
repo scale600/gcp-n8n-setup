@@ -60,6 +60,7 @@ jobs:
         INSTANCE_IP=$(terraform output -raw instance_ip)
         echo "ip=$INSTANCE_IP" >> $GITHUB_OUTPUT
         echo "Instance IP: $INSTANCE_IP"
+        echo "IP_ADDRESS=$INSTANCE_IP" >> $GITHUB_ENV
 
       - name: Upload IP as artifact
         uses: actions/upload-artifact@v4
@@ -94,18 +95,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install ansible
 
-      - name: Create SSH key file
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ needs.terraform-deploy.outputs.ip }} >> ~/.ssh/known_hosts
+    - name: Create SSH key file
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H 34.41.206.205 >> ~/.ssh/known_hosts
 
-      - name: Create Ansible inventory
-        run: |
-          cd ansible
-          echo "[n8n_server]" > inventory.ini
-          echo "${{ needs.terraform-deploy.outputs.ip }} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+    - name: Create Ansible inventory
+      run: |
+        cd ansible
+        echo "[n8n_server]" > inventory.ini
+        echo "34.41.206.205 ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
 
       - name: Run Ansible playbook
         run: |
