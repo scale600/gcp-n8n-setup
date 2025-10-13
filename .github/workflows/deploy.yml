@@ -40,11 +40,13 @@ jobs:
     - name: Cleanup existing resources
       run: |
         # Delete existing resources to avoid conflicts
-        gcloud compute instances delete n8n-server --zone=us-central1-a --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
-        gcloud compute addresses delete n8n-static-ip --region=us-central1 --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
-        gcloud compute firewall-rules delete allow-http --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
-        gcloud compute firewall-rules delete allow-https --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
-        gcloud compute firewall-rules delete allow-ssh --project=${{ secrets.GCP_PROJECT_ID }} --quiet || true
+        echo "Cleaning up existing GCP resources..."
+        gcloud compute instances delete n8n-server --zone=us-central1-a --project=${{ secrets.GCP_PROJECT_ID }} --quiet || echo "Instance not found"
+        gcloud compute addresses delete n8n-static-ip --region=us-central1 --project=${{ secrets.GCP_PROJECT_ID }} --quiet || echo "Static IP not found"
+        gcloud compute firewall-rules delete allow-http --project=${{ secrets.GCP_PROJECT_ID }} --quiet || echo "HTTP firewall rule not found"
+        gcloud compute firewall-rules delete allow-https --project=${{ secrets.GCP_PROJECT_ID }} --quiet || echo "HTTPS firewall rule not found"
+        gcloud compute firewall-rules delete allow-ssh --project=${{ secrets.GCP_PROJECT_ID }} --quiet || echo "SSH firewall rule not found"
+        echo "Cleanup completed"
 
     - name: Terraform Apply
       run: |
