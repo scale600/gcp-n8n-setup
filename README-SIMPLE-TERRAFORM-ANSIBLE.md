@@ -1,150 +1,150 @@
 # 🚀 Simple Terraform + Ansible + Docker n8n Deployment
 
-**Terraform → GCP 인프라 생성**  
-**Ansible → 서버 설정 및 n8n 설치**  
-**Docker → n8n 컨테이너 실행**  
-**완료! (IP:5678로 접속)**
+**Terraform → Create GCP Infrastructure**  
+**Ansible → Configure Server and Install n8n**  
+**Docker → Run n8n Container**  
+**Complete! (Access via IP:5678)**
 
-## 🎯 **단순화된 구성**
+## 🎯 **Simplified Configuration**
 
-### **제거된 복잡성**
+### **Removed Complexity**
 
-- ❌ Nginx 리버스 프록시
-- ❌ SSL 인증서 (Let's Encrypt)
-- ❌ 도메인 설정
-- ❌ 복잡한 방화벽 규칙
-- ❌ 복잡한 Ansible 태스크
+- ❌ Nginx reverse proxy
+- ❌ SSL certificates (Let's Encrypt)
+- ❌ Domain configuration
+- ❌ Complex firewall rules
+- ❌ Complex Ansible tasks
 
-### **유지된 핵심 기능**
+### **Retained Core Features**
 
-- ✅ Terraform으로 GCP 인프라 관리
-- ✅ Ansible으로 서버 설정 자동화
-- ✅ Docker로 n8n 컨테이너 실행
-- ✅ 간단한 방화벽 규칙 (포트 5678)
-- ✅ 정적 IP 주소
+- ✅ Terraform for GCP infrastructure management
+- ✅ Ansible for server configuration automation
+- ✅ Docker for n8n container execution
+- ✅ Simple firewall rules (port 5678)
+- ✅ Static IP address
 
-## 📁 **파일 구조**
+## 📁 **File Structure**
 
 ```
 ├── terraform-simple/
-│   ├── main.tf          # 단순화된 Terraform 구성
-│   └── variables.tf     # 변수 정의
+│   ├── main.tf          # Simplified Terraform configuration
+│   └── variables.tf     # Variable definitions
 ├── ansible-simple/
-│   ├── playbook.yml     # 단순화된 Ansible 플레이북
-│   └── requirements.yml # Ansible 컬렉션 요구사항
+│   ├── playbook.yml     # Simplified Ansible playbook
+│   └── requirements.yml # Ansible collection requirements
 ├── .github/workflows/
-│   └── deploy-simple.yml # 단순화된 GitHub Actions
-└── deploy-simple.sh     # 로컬 배포 스크립트
+│   └── deploy-simple.yml # Simplified GitHub Actions
+└── deploy-simple.sh     # Local deployment script
 ```
 
-## 🚀 **배포 방법**
+## 🚀 **Deployment Methods**
 
-### **방법 1: 로컬 배포 (권장)**
+### **Method 1: Local Deployment (Recommended)**
 
 ```bash
-# 1. 환경 변수 설정
+# 1. Set environment variables
 export GCP_PROJECT_ID=your-project-id
 export SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)"
 
-# 2. 배포 실행
+# 2. Run deployment
 ./deploy-simple.sh
 
-# 3. 완료 후 접속
+# 3. Access after completion
 # http://[IP]:5678
 ```
 
-### **방법 2: GitHub Actions 배포**
+### **Method 2: GitHub Actions Deployment**
 
 ```bash
-# 1. GitHub Secrets 설정
+# 1. Configure GitHub Secrets
 # - GCP_PROJECT_ID
 # - GCP_CREDENTIALS
 # - SSH_PUBLIC_KEY
 # - SSH_PRIVATE_KEY
 
-# 2. 워크플로우 실행
+# 2. Run workflow
 gh workflow run deploy-simple.yml
 
-# 3. 완료 후 접속
+# 3. Access after completion
 # http://[IP]:5678
 ```
 
-## 🧹 **정리 방법**
+## 🧹 **Cleanup Methods**
 
-### **로컬 정리**
+### **Local Cleanup**
 
 ```bash
 cd terraform-simple
 terraform destroy
 ```
 
-### **GitHub Actions 정리**
+### **GitHub Actions Cleanup**
 
 ```bash
-# 워크플로우에서 terraform destroy 실행하거나
-# 수동으로 GCP 콘솔에서 리소스 삭제
+# Run terraform destroy in workflow or
+# Manually delete resources from GCP console
 ```
 
-## 📊 **기존 vs 단순화된 구성 비교**
+## 📊 **Comparison: Original vs Simplified Configuration**
 
-| 구분               | 기존 구성       | 단순화된 구성  |
-| ------------------ | --------------- | -------------- |
-| **Terraform 파일** | 3개             | 2개            |
-| **Ansible 태스크** | 20+             | 8개            |
-| **GitHub Actions** | 4개 워크플로우  | 1개 워크플로우 |
-| **배포 시간**      | 10-15분         | 5-8분          |
-| **복잡도**         | 높음            | 중간           |
-| **기능**           | 완전한 프로덕션 | 핵심 기능      |
+| Category           | Original Configuration | Simplified Configuration |
+| ------------------ | ---------------------- | ------------------------ |
+| **Terraform Files** | 3 files               | 2 files                  |
+| **Ansible Tasks**  | 20+ tasks             | 8 tasks                  |
+| **GitHub Actions** | 4 workflows           | 1 workflow               |
+| **Deployment Time** | 10-15 minutes         | 5-8 minutes              |
+| **Complexity**     | High                  | Medium                   |
+| **Features**       | Full production       | Core features            |
 
-## 🔧 **요구사항**
+## 🔧 **Requirements**
 
-### **로컬 배포**
+### **Local Deployment**
 
 - Terraform
 - Ansible
 - Google Cloud SDK
-- SSH 키 쌍
+- SSH key pair
 
-### **GitHub Actions 배포**
+### **GitHub Actions Deployment**
 
-- GitHub Secrets 설정
+- GitHub Secrets configuration
 - GCP Service Account
 
-## 🎉 **장점**
+## 🎉 **Advantages**
 
-1. **복잡도 50% 감소**: Nginx, SSL, 도메인 설정 제거
-2. **배포 시간 단축**: 5-8분 내 완료
-3. **학습 곡선 완만**: 핵심 개념만 유지
-4. **유지보수 간편**: 단순한 구조
-5. **확장 가능**: 필요시 기능 추가 용이
+1. **50% complexity reduction**: Removed Nginx, SSL, domain configuration
+2. **Faster deployment**: Complete in 5-8 minutes
+3. **Gentle learning curve**: Retain only core concepts
+4. **Easy maintenance**: Simple structure
+5. **Extensible**: Easy to add features when needed
 
-## 🚨 **주의사항**
+## 🚨 **Considerations**
 
-- **HTTP만 지원**: SSL 없음 (개발/테스트용)
-- **기본 보안**: 방화벽 규칙 최소화
-- **도메인 없음**: IP 주소로만 접속
-- **백업 없음**: 수동 백업 필요
+- **HTTP only**: No SSL (for development/testing)
+- **Basic security**: Minimal firewall rules
+- **No domain**: Access only via IP address
+- **No backup**: Manual backup required
 
-## 🔄 **확장 방법**
+## 🔄 **Extension Methods**
 
-필요시 다음 기능들을 추가할 수 있습니다:
+You can add the following features when needed:
 
 ```bash
-# SSL 추가
-# - Let's Encrypt 인증서
-# - Nginx 리버스 프록시
+# Add SSL
+# - Let's Encrypt certificates
+# - Nginx reverse proxy
 
-# 도메인 추가
-# - DNS 설정
-# - 도메인 검증
+# Add domain
+# - DNS configuration
+# - Domain verification
 
-# 보안 강화
-# - 방화벽 규칙 제한
-# - SSH 키 기반 인증 강화
+# Enhance security
+# - Restrict firewall rules
+# - Strengthen SSH key-based authentication
 ```
 
-## 🎯 **결론**
+## 🎯 **Conclusion**
 
-이 구성은 **Terraform + Ansible + Docker의 핵심 장점**을 유지하면서 **불필요한 복잡성은 제거**한 **균형잡힌 접근법**입니다.
+This configuration is a **balanced approach** that maintains the **core advantages of Terraform + Ansible + Docker** while **removing unnecessary complexity**.
 
-**빠른 배포**와 **간단한 유지보수**를 원하면서도 **인프라 코드화**의 장점을 누리고 싶다면 이 방법을 추천합니다!
+If you want **fast deployment** and **simple maintenance** while enjoying the benefits of **infrastructure as code**, we recommend this method!

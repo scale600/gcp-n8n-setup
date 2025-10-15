@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Simple Terraform + Ansible + Docker n8n Deployment
-# Terraform → GCP 인프라 생성
-# Ansible → 서버 설정 및 n8n 설치  
-# Docker → n8n 컨테이너 실행
-# 완료! (IP:5678로 접속)
+# Terraform → Create GCP Infrastructure
+# Ansible → Configure Server and Install n8n
+# Docker → Run n8n Container
+# Complete! (Access via IP:5678)
 
 set -e
 
