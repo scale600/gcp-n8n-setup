@@ -76,8 +76,16 @@ deploy_infrastructure() {
     
     cd terraform-simple
     
-    # Initialize Terraform
-    print_status "Initializing Terraform..."
+    # Check if backend bucket exists
+    print_status "Checking Terraform backend configuration..."
+    if ! gsutil ls -b gs://terraform-state-n8n-deployment >/dev/null 2>&1; then
+        print_warning "Terraform state bucket not found. Please run setup-terraform-backend.sh first."
+        print_status "Or run: ./setup-terraform-backend.sh"
+        exit 1
+    fi
+    
+    # Initialize Terraform with backend
+    print_status "Initializing Terraform with backend..."
     terraform init
     
     # Plan the deployment

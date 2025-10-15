@@ -6,6 +6,9 @@ terraform {
       version = "4.51.0"
     }
   }
+  
+  # Backend configuration is in backend.tf
+  # This enables remote state storage in Google Cloud Storage
 }
 
 # Configure the Google Cloud provider

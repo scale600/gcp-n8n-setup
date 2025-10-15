@@ -22,19 +22,22 @@
 - ✅ Docker for n8n container execution
 - ✅ Simple firewall rules (port 5678)
 - ✅ Static IP address
+- ✅ Remote state management (GCS backend)
 
 ## 📁 **File Structure**
 
 ```
 ├── terraform-simple/
 │   ├── main.tf          # Simplified Terraform configuration
-│   └── variables.tf     # Variable definitions
+│   ├── variables.tf     # Variable definitions
+│   └── backend.tf       # Terraform state backend configuration
 ├── ansible-simple/
 │   ├── playbook.yml     # Simplified Ansible playbook
 │   └── requirements.yml # Ansible collection requirements
 ├── .github/workflows/
 │   └── deploy-simple.yml # Simplified GitHub Actions
-└── deploy-simple.sh     # Local deployment script
+├── deploy-simple.sh     # Local deployment script
+└── setup-terraform-backend.sh # Backend setup script
 ```
 
 ## 🚀 **Deployment Methods**
@@ -46,10 +49,13 @@
 export GCP_PROJECT_ID=your-project-id
 export SSH_PUBLIC_KEY="$(cat ~/.ssh/id_rsa.pub)"
 
-# 2. Run deployment
+# 2. Setup Terraform backend (first time only)
+./setup-terraform-backend.sh
+
+# 3. Run deployment
 ./deploy-simple.sh
 
-# 3. Access after completion
+# 4. Access after completion
 # http://[IP]:5678
 ```
 
@@ -117,6 +123,8 @@ terraform destroy
 3. **Gentle learning curve**: Retain only core concepts
 4. **Easy maintenance**: Simple structure
 5. **Extensible**: Easy to add features when needed
+6. **State management**: Remote state storage prevents resource conflicts
+7. **Team collaboration**: Shared state enables team deployments
 
 ## 🚨 **Considerations**
 

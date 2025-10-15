@@ -29,6 +29,18 @@ jobs:
         with:
           terraform_version: 1.6.0
 
+      - name: Create Terraform State Bucket
+        run: |
+          BUCKET_NAME="terraform-state-n8n-deployment"
+          if ! gsutil ls -b gs://$BUCKET_NAME >/dev/null 2>&1; then
+            echo "Creating Terraform state bucket..."
+            gsutil mb -p ${{ secrets.GCP_PROJECT_ID }} -c STANDARD -l us-central1 gs://$BUCKET_NAME
+            gsutil versioning set on gs://$BUCKET_NAME
+            echo "Bucket created: gs://$BUCKET_NAME"
+          else
+            echo "Bucket already exists: gs://$BUCKET_NAME"
+          fi
+
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform-simple
