@@ -1,0 +1,128 @@
+name: Simple n8n Deployment
+
+on:
+  push:
+    branches: [main, feat/n8n-cicd-pipeline]
+  workflow_dispatch:
+
+jobs:
+  terraform-deploy:
+    name: "Terraform: Deploy Infrastructure"
+    runs-on: ubuntu-latest
+    outputs:
+      instance_ip: ${{ steps.get_ip.outputs.IP }}
+    env:
+      TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_VAR_ssh_public_key: ${{ secrets.SSH_PUBLIC_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Create Terraform State Bucket
+        run: |
+          BUCKET_NAME="terraform-state-n8n-deployment"
+          if ! gsutil ls -b gs://$BUCKET_NAME >/dev/null 2>&1; then
+            echo "Creating Terraform state bucket..."
+            gsutil mb -p ${{ secrets.GCP_PROJECT_ID }} -c STANDARD -l us-central1 gs://$BUCKET_NAME
+            gsutil versioning set on gs://$BUCKET_NAME
+            echo "Bucket created: gs://$BUCKET_NAME"
+          else
+            echo "Bucket already exists: gs://$BUCKET_NAME"
+          fi
+
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform-simple
+
+      - name: Terraform Plan
+        run: terraform plan -no-color
+        working-directory: ./terraform-simple
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve -no-color
+        working-directory: ./terraform-simple
+
+      - name: Get Instance IP
+        id: get_ip
+        run: |
+          IP=$(terraform output -raw instance_ip)
+          echo "IP=${IP}" >> $GITHUB_OUTPUT
+        working-directory: ./terraform-simple
+
+  ansible-configure:
+    name: "Ansible: Configure Server"
+    runs-on: ubuntu-latest
+    needs: terraform-deploy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+      - name: Wait for SSH to be available
+        uses: lewagon/wait-on-ssh-action@v1.0.0
+        with:
+          host: ${{ needs.terraform-deploy.outputs.instance_ip }}
+          port: 22
+          username: admin
+          private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          timeout: 120
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --user ansible
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install Ansible collections
+        run: ansible-galaxy install -r requirements.yml
+        working-directory: ./ansible-simple
+
+      - name: Create Ansible inventory
+        run: |
+          echo "[n8n_server]" > inventory.ini
+          echo "${{ needs.terraform-deploy.outputs.instance_ip }} ansible_user=admin ansible_ssh_private_key_file=~/.ssh/id_rsa" >> inventory.ini
+        working-directory: ./ansible-simple
+
+      - name: Run Ansible Playbook
+        run: ansible-playbook -i inventory.ini playbook.yml
+        working-directory: ./ansible-simple
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: False
+
+      - name: Cleanup
+        run: |
+          rm -f ~/.ssh/id_rsa
+          rm -f ansible-simple/inventory.ini
+
+  notify-completion:
+    name: "Notify Deployment Completion"
+    runs-on: ubuntu-latest
+    needs: [terraform-deploy, ansible-configure]
+    if: always()
+
+    steps:
+      - name: Deployment Status
+        run: |
+          if [ "${{ needs.terraform-deploy.result }}" == "success" ] && [ "${{ needs.ansible-configure.result }}" == "success" ]; then
+            echo "✅ Deployment completed successfully!"
+            echo "🌐 Your n8n instance is available at: http://${{ needs.terraform-deploy.outputs.instance_ip }}:5678"
+          else
+            echo "❌ Deployment failed. Please check the logs above."
+            exit 1
+          fi
