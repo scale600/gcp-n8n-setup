@@ -87,14 +87,14 @@ terraform destroy
 
 ## 📊 **Comparison: Original vs Simplified Configuration**
 
-| Category           | Original Configuration | Simplified Configuration |
-| ------------------ | ---------------------- | ------------------------ |
-| **Terraform Files** | 3 files               | 2 files                  |
-| **Ansible Tasks**  | 20+ tasks             | 8 tasks                  |
-| **GitHub Actions** | 4 workflows           | 1 workflow               |
-| **Deployment Time** | 10-15 minutes         | 5-8 minutes              |
-| **Complexity**     | High                  | Medium                   |
-| **Features**       | Full production       | Core features            |
+| Category            | Original Configuration | Simplified Configuration |
+| ------------------- | ---------------------- | ------------------------ |
+| **Terraform Files** | 3 files                | 2 files                  |
+| **Ansible Tasks**   | 20+ tasks              | 8 tasks                  |
+| **GitHub Actions**  | 4 workflows            | 1 workflow               |
+| **Deployment Time** | 10-15 minutes          | 5-8 minutes              |
+| **Complexity**      | High                   | Medium                   |
+| **Features**        | Full production        | Core features            |
 
 ## 🔧 **Requirements**
 
