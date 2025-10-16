@@ -1,0 +1,156 @@
+---
+- name: Configure n8n server on GCP
+  hosts: n8n_server
+  become: true
+  vars:
+    swap_size: "1G"
+    user_home: "/home/{{ ansible_user }}"
+    n8n_port: "{{ n8n_port | default('5678') }}"
+    n8n_host: "{{ n8n_host | default('0.0.0.0') }}"
+    n8n_protocol: "{{ n8n_protocol | default('http') }}"
+    n8n_timezone: "{{ n8n_timezone | default('Asia/Seoul') }}"
+    n8n_basic_auth_user: "{{ n8n_basic_auth_user | default('admin') }}"
+    n8n_basic_auth_password: "{{ n8n_basic_auth_password | default('admin123') }}"
+    n8n_secure_cookie: "{{ n8n_secure_cookie | default('false') }}"
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - wget
+          - gnupg
+          - lsb-release
+          - ca-certificates
+          - software-properties-common
+        state: present
+
+    - name: Create 1GB swap file
+      shell: |
+        if [ ! -f /swapfile ]; then
+          fallocate -l {{ swap_size }} /swapfile
+          chmod 600 /swapfile
+          mkswap /swapfile
+          swapon /swapfile
+          echo '/swapfile none swap sw 0 0' >> /etc/fstab
+        fi
+      args:
+        creates: /swapfile
+
+    - name: Verify swap is active
+      shell: swapon --show
+      register: swap_status
+      changed_when: false
+
+    - name: Display swap status
+      debug:
+        msg: "{{ swap_status.stdout_lines }}"
+
+    - name: Add Docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
+        state: present
+
+    - name: Update apt cache after adding Docker repo
+      apt:
+        update_cache: yes
+
+    - name: Install Docker Engine
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+
+    - name: Create n8n directory
+      file:
+        path: "{{ user_home }}/n8n"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
+    - name: Create docker-compose.yml for n8n
+      copy:
+        content: |
+          version: '3.8'
+
+          services:
+            n8n:
+              image: n8nio/n8n:latest
+              container_name: n8n
+              restart: unless-stopped
+              ports:
+                - "0.0.0.0:{{ n8n_port }}:{{ n8n_port }}"
+              environment:
+                - N8N_HOST={{ n8n_host }}
+                - N8N_PORT={{ n8n_port }}
+                - N8N_PROTOCOL={{ n8n_protocol }}
+                - NODE_ENV=production
+                - GENERIC_TIMEZONE={{ n8n_timezone }}
+                - N8N_BASIC_AUTH_ACTIVE=true
+                - N8N_BASIC_AUTH_USER={{ n8n_basic_auth_user }}
+                - N8N_BASIC_AUTH_PASSWORD={{ n8n_basic_auth_password }}
+                - N8N_SECURE_COOKIE={{ n8n_secure_cookie }}
+              volumes:
+                - ./n8n_data:/home/node/.n8n
+              healthcheck:
+                test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:{{ n8n_port }}/healthz"]
+                interval: 30s
+                timeout: 10s
+                retries: 3
+                start_period: 40s
+        dest: "{{ user_home }}/n8n/docker-compose.yml"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0644"
+
+    - name: Start n8n container
+      community.docker.docker_compose_v2:
+        project_src: "{{ user_home }}/n8n"
+        state: present
+      become_user: "{{ ansible_user }}"
+
+    - name: Wait for n8n to be ready
+      wait_for:
+        port: "{{ n8n_port }}"
+        host: "{{ ansible_default_ipv4.address }}"
+        delay: 10
+        timeout: 120
+
+    - name: Display n8n access information
+      debug:
+        msg: |
+          🎉 n8n is now running!
+
+          Access URL: http://{{ ansible_default_ipv4.address }}:{{ n8n_port }}
+          Username: {{ n8n_basic_auth_user }}
+          Password: {{ n8n_basic_auth_password }}
+
+          Server Info:
+          - Swap: {{ swap_size }} configured
+          - Docker: Running
+          - n8n: Latest version
